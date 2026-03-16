@@ -370,7 +370,8 @@ html, body {
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   margin-bottom: 24px;
 }
 
@@ -938,11 +939,14 @@ html, body {
   
   .main-content {
     margin-left: 0;
-    padding: 20px;
+    padding: 16px;
+    width: 100%;
+    max-width: 100vw;
   }
   
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
   
   .jobs-grid {
@@ -1024,9 +1028,8 @@ html, body {
 /* ===== PAGE HEADER FLEX ===== */
 .page-header {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 16px;
 }
 

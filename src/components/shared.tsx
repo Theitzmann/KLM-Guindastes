@@ -55,6 +55,12 @@ export function Sidebar({ user, sidebarOpen, onToggle }: { user: any; sidebarOpe
 
   return (
     <>
+      {sidebarOpen && (
+        <div 
+          onClick={onToggle}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)', zIndex: 90, animation: 'fadeIn 0.2s ease-out' }}
+        />
+      )}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand">
           <Image src="/logo-klm.png" alt="KLM" width={96} height={66} style={{ borderRadius: 8, objectFit: 'contain' }} />
