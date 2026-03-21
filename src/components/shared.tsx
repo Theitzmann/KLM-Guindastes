@@ -129,6 +129,7 @@ export const tipoVeiculoLabels: Record<string, string> = {
   MUNCK: 'Munck',
   GUINDASTE: 'Guindaste',
   EMPILHADEIRA: 'Empilhadeira',
+  CARRETA: 'Carreta',
 };
 
 export const tipoServicoLabels: Record<string, string> = {

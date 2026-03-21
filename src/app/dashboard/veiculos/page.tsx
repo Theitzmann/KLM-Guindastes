@@ -81,7 +81,7 @@ export default function VeiculosPage() {
 
         {/* Filter */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-          {['TODOS', 'MUNCK', 'GUINDASTE', 'EMPILHADEIRA'].map((tipo) => (
+          {['TODOS', 'MUNCK', 'GUINDASTE', 'EMPILHADEIRA', 'CARRETA'].map((tipo) => (
             <button key={tipo} className={`btn ${filtro === tipo ? 'btn-primary' : 'btn-secondary'} btn-sm`} onClick={() => setFiltro(tipo)}>
               {tipo === 'TODOS' ? 'Todos' : tipoVeiculoLabels[tipo]} ({tipo === 'TODOS' ? veiculos.length : veiculos.filter((v: any) => v.tipo === tipo).length})
             </button>
@@ -152,6 +152,7 @@ export default function VeiculosPage() {
                       <option value="MUNCK">Munck</option>
                       <option value="GUINDASTE">Guindaste</option>
                       <option value="EMPILHADEIRA">Empilhadeira</option>
+                      <option value="CARRETA">Carreta</option>
                     </select>
                   </div>
                   <div className="form-group">

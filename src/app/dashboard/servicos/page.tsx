@@ -335,6 +335,7 @@ export default function ServicosPage() {
                           <option value="MUNCK">Munck</option>
                           <option value="GUINDASTE">Guindaste</option>
                           <option value="EMPILHADEIRA">Empilhadeira</option>
+                          <option value="CARRETA">Carreta</option>
                         </select>
                       </div>
                       <div className="form-group">

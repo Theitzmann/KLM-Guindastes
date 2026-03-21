@@ -115,7 +115,7 @@ export default function DashboardPage() {
               <h2 className="section-title"><Truck className="section-title-icon" size={20} /> Disponibilidade por Tipo</h2>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, padding: '20px 24px' }}>
-              {['MUNCK', 'GUINDASTE', 'EMPILHADEIRA'].map((tipo) => {
+              {['MUNCK', 'GUINDASTE', 'EMPILHADEIRA', 'CARRETA'].map((tipo) => {
                 const all = veiculosPorTipo(tipo);
                 const disp = all.filter((v: any) => v.status === 'DISPONIVEL').length;
                 return (
