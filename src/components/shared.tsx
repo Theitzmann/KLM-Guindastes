@@ -1,9 +1,9 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   Truck, Users, ClipboardList, LayoutDashboard,
-  LogOut, X, Menu, DollarSign
+  X, Menu, DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -31,13 +31,7 @@ export function isValidEmail(email: string): boolean {
 
 // ===== Sidebar =====
 export function Sidebar({ user, sidebarOpen, onToggle }: { user: any; sidebarOpen: boolean; onToggle: () => void }) {
-  const router = useRouter();
   const pathname = usePathname();
-
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
-  };
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
@@ -91,7 +85,6 @@ export function Sidebar({ user, sidebarOpen, onToggle }: { user: any; sidebarOpe
             <div className="sidebar-user-name">{user?.nome}</div>
             <div className="sidebar-user-role">{cargoLabels[user?.cargo] || user?.cargo}</div>
           </div>
-          <button className="sidebar-logout" onClick={handleLogout} title="Sair"><LogOut size={18} /></button>
         </div>
       </aside>
 
