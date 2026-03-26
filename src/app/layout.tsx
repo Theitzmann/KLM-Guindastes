@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 export const viewport: Viewport = {
-  themeColor: "#0a0e1a",
+  themeColor: "#f59e0b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -15,10 +16,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "KLM",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   icons: {
     apple: "/logo-klm.png",
+    icon: "/logo-klm.png",
   },
 };
 
@@ -29,7 +31,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <head>
+        {/* iOS PWA */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="KLM" />
+        <link rel="apple-touch-icon" href="/logo-klm.png" />
+      </head>
+      <body>
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }

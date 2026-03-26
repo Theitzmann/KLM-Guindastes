@@ -1,21 +1,24 @@
 {
   "name": "KLM Guindastes — Controle de Operações",
-  "short_name": "KLM App",
+  "short_name": "KLM",
   "description": "Sistema operacional interno da KLM Guindastes.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
   "icons": [
     {
       "src": "/logo-klm.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/logo-klm.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
