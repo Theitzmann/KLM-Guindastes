@@ -68,13 +68,13 @@ model Servico {
   tokenPublico          String?          @unique
   tokenExpiraEm         DateTime?
   // Meta
-  criadoPorId           Int
+  criadoPorId           Int?
   criadoEm              DateTime         @default(now())
   // Relations
   veiculo               Veiculo?         @relation(fields: [veiculoId], references: [id])
   veiculosAlocados      ServicoVeiculo[]
   funcionario           Funcionario?     @relation(fields: [funcionarioId], references: [id])
-  criadoPor             Usuario          @relation(fields: [criadoPorId], references: [id])
+  criadoPor             Usuario?         @relation(fields: [criadoPorId], references: [id])
 }
 
 model ServicoVeiculo {

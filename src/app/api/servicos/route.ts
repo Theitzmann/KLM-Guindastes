@@ -24,10 +24,6 @@ export async function POST(request: Request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
 
-  // Verify user still exists in DB (prevents FK error from stale sessions)
-  const userExists = await prisma.usuario.findUnique({ where: { id: session.id } });
-  if (!userExists) return NextResponse.json({ error: 'Sessão inválida. Faça login novamente.' }, { status: 401 });
-
   try {
     const data = await request.json();
 
@@ -53,6 +49,7 @@ export async function POST(request: Request) {
       const agg = await tx.servico.aggregate({ _max: { numeroOS: true } });
       const numeroOS = (agg._max.numeroOS ?? 0) + 1;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return tx.servico.create({
         data: {
           numeroOS,
@@ -71,11 +68,11 @@ export async function POST(request: Request) {
           tipoServico: data.tipoServico || null,
           valores: data.valores?.trim() || null,
           formaPagamento: data.formaPagamento?.trim() || null,
-          criadoPorId: Number(session.id),
+          criadoPorId: session.id > 0 ? Number(session.id) : null,
           veiculosAlocados: veiculoIds.length > 0
             ? { create: veiculoIds.map(vid => ({ veiculoId: vid })) }
             : undefined,
-        },
+        } as any,
         include: SERVICO_INCLUDE,
       });
     });
