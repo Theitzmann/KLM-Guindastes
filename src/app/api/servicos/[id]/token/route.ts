@@ -15,8 +15,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
   // Idempotent: return existing token if already generated
   if (servico.tokenPublico) {
-    const url = `${process.env.NEXT_PUBLIC_APP_URL}/os/${servico.tokenPublico}`;
-    return NextResponse.json({ token: servico.tokenPublico, url });
+    return NextResponse.json({ token: servico.tokenPublico });
   }
 
   const token = crypto.randomUUID();
@@ -25,8 +24,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     data: { tokenPublico: token },
   });
 
-  const url = `${process.env.NEXT_PUBLIC_APP_URL}/os/${token}`;
-  return NextResponse.json({ token, url });
+  return NextResponse.json({ token });
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {

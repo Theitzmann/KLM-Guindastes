@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Truck, Users, ClipboardList, Construction,
   MapPin, User, Calendar, Wrench, CheckCircle2,
-  Clock, AlertTriangle, DollarSign, Phone, Eye, FileText, Share2, Link
+  Clock, AlertTriangle, DollarSign, Phone, Eye, FileText, Share2, Link, Image
 } from 'lucide-react';
 import { Sidebar, StatusBadge, tipoVeiculoLabels, tipoServicoLabels, funcaoLabels } from '@/components/shared';
 
@@ -45,7 +45,7 @@ export default function DashboardPage() {
       const res = await fetch(`/api/servicos/${servicoId}/token`, { method: 'POST' });
       if (!res.ok) return null;
       const data = await res.json();
-      return data.url;
+      return `${window.location.origin}/os/${data.token}`;
     } catch { return null; }
   };
 
@@ -75,6 +75,32 @@ export default function DashboardPage() {
       document.body.removeChild(ta);
     }
     showToast('Link copiado!');
+  };
+
+  const osCardRef = useRef<HTMLDivElement>(null);
+
+  const handleShareImage = async (s: any) => {
+    if (!osCardRef.current) return;
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(osCardRef.current, { backgroundColor: '#1a1a2e', scale: 2, useCORS: true });
+      const osNum = (s.numeroOS ?? s.id).toString().padStart(4, '0');
+      canvas.toBlob(async (blob) => {
+        if (!blob) { showToast('Erro ao gerar imagem'); return; }
+        const file = new File([blob], `OS-${osNum}.png`, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: `OS #${osNum} — KLM Guindastes` });
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = `OS-${osNum}.png`;
+          document.body.appendChild(a); a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('Imagem salva!');
+        }
+      }, 'image/png');
+    } catch { showToast('Erro ao gerar imagem'); }
   };
 
   if (loading) return <div className="loading" style={{ minHeight: '100vh' }}><div className="loading-spinner" /></div>;
@@ -296,7 +322,7 @@ export default function DashboardPage() {
                 <button className="modal-close" onClick={() => setOsPreview(null)}>✕</button>
               </div>
               <div className="modal-body">
-                <div className="os-card">
+                <div className="os-card" ref={osCardRef}>
                   <div className="os-card-header">
                     <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--amber-400)' }}>KLM Guindastes — Ordem de Serviço</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: 4 }}>OS #{(osPreview.numeroOS ?? osPreview.id).toString().padStart(4, '0')}</div>
@@ -322,9 +348,12 @@ export default function DashboardPage() {
                     KLM Guindastes — Qualidade com Segurança
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
                   <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handleWhatsApp(osPreview)}>
                     <Share2 size={16} /> Abrir no WhatsApp
+                  </button>
+                  <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleShareImage(osPreview)}>
+                    <Image size={16} /> Enviar como Foto
                   </button>
                   <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleCopyLink(osPreview)}>
                     <Link size={16} /> Copiar Link
