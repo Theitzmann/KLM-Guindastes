@@ -301,7 +301,14 @@ export default function DashboardPage() {
                     <div className="os-field"><MapPin size={14} /><div><strong>Local:</strong> {osPreview.localidade}</div></div>
                     <div className="os-field"><Calendar size={14} /><div><strong>Data:</strong> {new Date(osPreview.dataInicio).toLocaleDateString('pt-BR')}{osPreview.dataFim ? ` até ${new Date(osPreview.dataFim).toLocaleDateString('pt-BR')}` : ''}</div></div>
                     <div className="os-field"><Truck size={14} /><div><strong>Veículo{(osPreview.veiculosAlocados?.length || 0) > 1 ? 's' : ''}:</strong> {osPreview.veiculosAlocados?.length > 0 ? osPreview.veiculosAlocados.map((sv: any) => sv.veiculo?.apelido || sv.veiculo?.nome).filter(Boolean).join(', ') : osPreview.veiculo ? (osPreview.veiculo.apelido || osPreview.veiculo.nome) : 'A definir'}</div></div>
-                    {osPreview.funcionario && <div className="os-field"><User size={14} /><div><strong>Operador:</strong> {osPreview.funcionario.nome}</div></div>}
+                    {(osPreview.funcionariosAlocados?.length > 0 || osPreview.funcionario) && (
+                      <div className="os-field"><User size={14} /><div>
+                        <strong>Funcionário{(osPreview.funcionariosAlocados?.length || 0) > 1 ? 's' : ''}:</strong>{' '}
+                        {osPreview.funcionariosAlocados?.length > 0
+                          ? osPreview.funcionariosAlocados.map((sf: any) => sf.funcionario?.nome).filter(Boolean).join(', ')
+                          : osPreview.funcionario.nome}
+                      </div></div>
+                    )}
                     {osPreview.descricao && <div className="os-field"><FileText size={14} /><div><strong>Descrição:</strong> {osPreview.descricao}</div></div>}
                     {osPreview.solicitante && <div className="os-field"><User size={14} /><div><strong>Responsável:</strong> {osPreview.solicitante}</div></div>}
                     {osPreview.contatoPagamento && <div className="os-field"><Phone size={14} /><div><strong>Contato:</strong> {osPreview.contatoPagamento}</div></div>}

@@ -16,6 +16,7 @@ interface OsData {
   veiculo: { apelido: string | null; nome: string; tipo: string; placa: string; capacidade: number | null } | null;
   veiculosAlocados: Array<{ veiculo: { apelido: string | null; nome: string; tipo: string; placa: string; capacidade: number | null } }>;
   funcionario: { nome: string; funcao: string; telefone: string | null } | null;
+  funcionariosAlocados: Array<{ funcionario: { nome: string; funcao: string; telefone: string | null } }>;
 }
 
 const statusLabels: Record<string, string> = {
@@ -174,16 +175,33 @@ export default async function OsPublicPage({ params }: { params: Promise<{ token
           )}
         </div>
 
-        {os.funcionario && (
+        {(os.funcionariosAlocados?.length > 0 || os.funcionario) && (
           <div className="section">
-            <div className="section-label">Operador</div>
-            <div className="section-value">{os.funcionario.nome}</div>
-            <div className="section-sub">{funcaoLabels[os.funcionario.funcao] || os.funcionario.funcao}</div>
-            {os.funcionario.telefone && (
-              <a href={`tel:${os.funcionario.telefone.replace(/\D/g, '')}`} className="phone-link">
-                📞 {os.funcionario.telefone}
-              </a>
-            )}
+            <div className="section-label">Funcionário{(os.funcionariosAlocados?.length || 0) > 1 ? 's' : ''}</div>
+            {os.funcionariosAlocados?.length > 0
+              ? os.funcionariosAlocados.map((sf, i) => (
+                <div key={i} style={{ marginBottom: i < os.funcionariosAlocados.length - 1 ? 8 : 0 }}>
+                  <div className="section-value">{sf.funcionario.nome}</div>
+                  <div className="section-sub">{funcaoLabels[sf.funcionario.funcao] || sf.funcionario.funcao}</div>
+                  {sf.funcionario.telefone && (
+                    <a href={`tel:${sf.funcionario.telefone.replace(/\D/g, '')}`} className="phone-link">
+                      📞 {sf.funcionario.telefone}
+                    </a>
+                  )}
+                </div>
+              ))
+              : os.funcionario && (
+                <div>
+                  <div className="section-value">{os.funcionario.nome}</div>
+                  <div className="section-sub">{funcaoLabels[os.funcionario.funcao] || os.funcionario.funcao}</div>
+                  {os.funcionario.telefone && (
+                    <a href={`tel:${os.funcionario.telefone.replace(/\D/g, '')}`} className="phone-link">
+                      📞 {os.funcionario.telefone}
+                    </a>
+                  )}
+                </div>
+              )
+            }
           </div>
         )}
 

@@ -11,6 +11,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
       veiculo: { select: { apelido: true, nome: true, tipo: true, placa: true, capacidade: true } },
       veiculosAlocados: { include: { veiculo: { select: { apelido: true, nome: true, tipo: true, placa: true, capacidade: true } } } },
       funcionario: { select: { nome: true, funcao: true, telefone: true } },
+      funcionariosAlocados: { include: { funcionario: { select: { nome: true, funcao: true, telefone: true } } } },
     },
   });
 
@@ -36,5 +37,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
     veiculo: servico.veiculo,
     veiculosAlocados: servico.veiculosAlocados,
     funcionario: servico.funcionario,
+    funcionariosAlocados: servico.funcionariosAlocados,
   });
 }
