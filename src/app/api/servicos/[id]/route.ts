@@ -6,6 +6,7 @@ const SERVICO_INCLUDE = {
   veiculo: true,
   veiculosAlocados: { include: { veiculo: true } },
   funcionario: true,
+  funcionariosAlocados: { include: { funcionario: true } },
   criadoPor: { select: { id: true, nome: true } },
 };
 
@@ -68,7 +69,7 @@ export async function PATCH(
         ...(data.status && { status: data.status }),
         ...(data.tipoVeiculoSolicitado && { tipoVeiculoSolicitado: data.tipoVeiculoSolicitado }),
         ...(data.qtdVeiculos && { qtdVeiculos: parseInt(data.qtdVeiculos) }),
-        ...(data.funcionarioId !== undefined && { funcionarioId: data.funcionarioId ? parseInt(data.funcionarioId) : null }),
+        ...(data.funcionarioId !== undefined && !data.funcionarioIds && { funcionarioId: data.funcionarioId ? parseInt(data.funcionarioId) : null }),
         ...(data.tipoServico !== undefined && { tipoServico: data.tipoServico }),
         ...(data.valores !== undefined && { valores: data.valores?.trim() || null }),
         ...(data.formaPagamento !== undefined && { formaPagamento: data.formaPagamento?.trim() || null }),
@@ -111,12 +112,42 @@ export async function PATCH(
       }
     }
 
-    // Update employee status if newly assigned
-    if (data.funcionarioId && data.funcionarioId !== 'null') {
-      await prisma.funcionario.update({
-        where: { id: parseInt(data.funcionarioId) },
-        data: { status: 'TRABALHANDO' },
+    // Sync multi-employee junction table
+    if (data.funcionarioIds !== undefined) {
+      const newFuncIds: number[] = Array.isArray(data.funcionarioIds) ? data.funcionarioIds.map(Number).filter(Boolean) : [];
+      const currentFunc = await prisma.servicoFuncionario.findMany({ where: { servicoId } });
+      const currentFuncIds = currentFunc.map(sf => sf.funcionarioId);
+
+      const toAddFunc = newFuncIds.filter(fid => !currentFuncIds.includes(fid));
+      const toRemoveFunc = currentFuncIds.filter(fid => !newFuncIds.includes(fid));
+
+      if (toRemoveFunc.length > 0) {
+        await prisma.servicoFuncionario.deleteMany({ where: { servicoId, funcionarioId: { in: toRemoveFunc } } });
+        // Only set FOLGA if not assigned to another active service
+        for (const fid of toRemoveFunc) {
+          const otherActive = await prisma.servicoFuncionario.findFirst({ where: { funcionarioId: fid, servicoId: { not: servicoId } } });
+          if (!otherActive) {
+            await prisma.funcionario.update({ where: { id: fid }, data: { status: 'FOLGA' } });
+          }
+        }
+      }
+      if (toAddFunc.length > 0) {
+        await prisma.servicoFuncionario.createMany({ data: toAddFunc.map(fid => ({ servicoId, funcionarioId: fid })) });
+        await prisma.funcionario.updateMany({ where: { id: { in: toAddFunc } }, data: { status: 'TRABALHANDO' } });
+      }
+
+      // Keep legacy funcionarioId in sync with first employee
+      await prisma.servico.update({ where: { id: servicoId }, data: { funcionarioId: newFuncIds[0] ?? null } });
+    } else if (data.funcionarioId && data.funcionarioId !== 'null') {
+      // Legacy single-employee assignment
+      const fid = parseInt(data.funcionarioId);
+      const exists = await prisma.servicoFuncionario.findUnique({
+        where: { servicoId_funcionarioId: { servicoId, funcionarioId: fid } },
       });
+      if (!exists) {
+        await prisma.servicoFuncionario.create({ data: { servicoId, funcionarioId: fid } });
+      }
+      await prisma.funcionario.update({ where: { id: fid }, data: { status: 'TRABALHANDO' } });
     }
 
     // Release all resources when completed or cancelled
@@ -129,8 +160,14 @@ export async function PATCH(
       if (allVehicleIds.length > 0) {
         await prisma.veiculo.updateMany({ where: { id: { in: allVehicleIds } }, data: { status: 'DISPONIVEL' } });
       }
-      if (servico.funcionarioId) {
-        await prisma.funcionario.update({ where: { id: servico.funcionarioId }, data: { status: 'FOLGA' } });
+      // Release all employees in junction table
+      const allFuncJunction = await prisma.servicoFuncionario.findMany({ where: { servicoId } });
+      const allFuncIds = [...new Set([
+        ...allFuncJunction.map(sf => sf.funcionarioId),
+        ...(servico.funcionarioId ? [servico.funcionarioId] : []),
+      ])];
+      if (allFuncIds.length > 0) {
+        await prisma.funcionario.updateMany({ where: { id: { in: allFuncIds } }, data: { status: 'FOLGA' } });
       }
     }
 
@@ -155,7 +192,7 @@ export async function DELETE(
     const servicoId = parseInt(id);
     const servico = await prisma.servico.findUnique({
       where: { id: servicoId },
-      include: { veiculosAlocados: true },
+      include: { veiculosAlocados: true, funcionariosAlocados: true },
     });
 
     if (servico) {
@@ -167,8 +204,14 @@ export async function DELETE(
       if (allVehicleIds.length > 0) {
         await prisma.veiculo.updateMany({ where: { id: { in: allVehicleIds } }, data: { status: 'DISPONIVEL' } });
       }
-      if (servico.funcionarioId) {
-        await prisma.funcionario.update({ where: { id: servico.funcionarioId }, data: { status: 'FOLGA' } });
+      // Release all employees
+      const allFuncJunction = await prisma.servicoFuncionario.findMany({ where: { servicoId } });
+      const allFuncIds = [...new Set([
+        ...allFuncJunction.map(sf => sf.funcionarioId),
+        ...(servico.funcionarioId ? [servico.funcionarioId] : []),
+      ])];
+      if (allFuncIds.length > 0) {
+        await prisma.funcionario.updateMany({ where: { id: { in: allFuncIds } }, data: { status: 'FOLGA' } });
       }
     }
 

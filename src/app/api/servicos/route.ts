@@ -6,6 +6,7 @@ const SERVICO_INCLUDE = {
   veiculo: true,
   veiculosAlocados: { include: { veiculo: true } },
   funcionario: true,
+  funcionariosAlocados: { include: { funcionario: true } },
   criadoPor: { select: { id: true, nome: true } },
 };
 
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
     if (veiculoIds.length === 0 && !data.tipoVeiculoSolicitado?.trim()) {
       errors.push('Especifique um veículo ou tipo de veículo');
     }
+    const funcionarioIds: number[] = Array.isArray(data.funcionarioIds)
+      ? data.funcionarioIds.map(Number).filter(Boolean)
+      : data.funcionarioId ? [Number(data.funcionarioId)] : [];
     if (data.contatoPagamento?.trim()) {
       const digits = data.contatoPagamento.replace(/\D/g, '');
       if (digits.length !== 10 && digits.length !== 11) errors.push('Telefone de contato deve ter 10 ou 11 dígitos');
@@ -49,7 +53,6 @@ export async function POST(request: Request) {
       const agg = await tx.servico.aggregate({ _max: { numeroOS: true } });
       const numeroOS = (agg._max.numeroOS ?? 0) + 1;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return tx.servico.create({
         data: {
           numeroOS,
@@ -64,7 +67,7 @@ export async function POST(request: Request) {
           tipoVeiculoSolicitado: data.tipoVeiculoSolicitado || null,
           qtdVeiculos: data.qtdVeiculos ? parseInt(data.qtdVeiculos) : 1,
           veiculoId: veiculoIds[0] ?? null,
-          funcionarioId: data.funcionarioId ? parseInt(data.funcionarioId) : null,
+          funcionarioId: funcionarioIds[0] ?? null,
           tipoServico: data.tipoServico || null,
           valores: data.valores?.trim() || null,
           formaPagamento: data.formaPagamento?.trim() || null,
@@ -72,6 +75,10 @@ export async function POST(request: Request) {
           veiculosAlocados: veiculoIds.length > 0
             ? { create: veiculoIds.map(vid => ({ veiculoId: vid })) }
             : undefined,
+          funcionariosAlocados: funcionarioIds.length > 0
+            ? { create: funcionarioIds.map(fid => ({ funcionarioId: fid })) }
+            : undefined,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         include: SERVICO_INCLUDE,
       });
@@ -81,8 +88,8 @@ export async function POST(request: Request) {
     if (veiculoIds.length > 0) {
       await prisma.veiculo.updateMany({ where: { id: { in: veiculoIds } }, data: { status: 'EM_USO' } });
     }
-    if (data.funcionarioId) {
-      await prisma.funcionario.update({ where: { id: parseInt(data.funcionarioId) }, data: { status: 'TRABALHANDO' } });
+    if (funcionarioIds.length > 0) {
+      await prisma.funcionario.updateMany({ where: { id: { in: funcionarioIds } }, data: { status: 'TRABALHANDO' } });
     }
 
     return NextResponse.json(servico, { status: 201 });

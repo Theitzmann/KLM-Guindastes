@@ -28,7 +28,7 @@ export default function ServicosPage() {
     solicitante: '', contatoPagamento: '',
     dataInicio: '', dataFim: '',
     tipoVeiculoSolicitado: 'MUNCK', qtdVeiculos: '1',
-    veiculoIds: [] as string[], funcionarioId: '',
+    veiculoIds: [] as string[], funcionarioIds: [] as string[],
     tipoServico: 'POR_HORA', valores: '', formaPagamento: '',
     schedulingMode: 'byType' as 'byType' | 'byVehicle',
   };
@@ -62,7 +62,8 @@ export default function ServicosPage() {
       solicitante: s.solicitante || '', contatoPagamento: s.contatoPagamento || '',
       dataInicio: s.dataInicio?.split('T')[0] || '', dataFim: s.dataFim?.split('T')[0] || '',
       tipoVeiculoSolicitado: s.tipoVeiculoSolicitado || 'MUNCK', qtdVeiculos: s.qtdVeiculos?.toString() || '1',
-      veiculoIds: existingVehicleIds, funcionarioId: s.funcionarioId?.toString() || '',
+      veiculoIds: existingVehicleIds,
+      funcionarioIds: s.funcionariosAlocados?.map((sf: any) => sf.funcionarioId.toString()) ?? (s.funcionarioId ? [s.funcionarioId.toString()] : []),
       tipoServico: s.tipoServico || 'POR_HORA', valores: s.valores || '', formaPagamento: s.formaPagamento || '',
       schedulingMode: existingVehicleIds.length > 0 ? 'byVehicle' : 'byType',
     });
@@ -93,8 +94,8 @@ export default function ServicosPage() {
       qtdVeiculos: form.schedulingMode === 'byType' ? form.qtdVeiculos : form.veiculoIds.length.toString(),
       tipoServico: form.tipoServico, valores: form.valores.trim(), formaPagamento: form.formaPagamento.trim(),
       veiculoIds: form.schedulingMode === 'byVehicle' ? form.veiculoIds.map(Number) : [],
+      funcionarioIds: form.funcionarioIds.map(Number),
     };
-    if (form.funcionarioId) body.funcionarioId = form.funcionarioId;
 
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (res.ok) {
@@ -107,9 +108,8 @@ export default function ServicosPage() {
     }
   };
 
-  const handleAssign = async (servicoId: number, veiculoIds: string[], funcionarioId: string) => {
-    const body: any = { veiculoIds: veiculoIds.map(Number) };
-    if (funcionarioId) body.funcionarioId = funcionarioId;
+  const handleAssign = async (servicoId: number, veiculoIds: string[], funcionarioIds: string[]) => {
+    const body: any = { veiculoIds: veiculoIds.map(Number), funcionarioIds: funcionarioIds.map(Number) };
     await fetch(`/api/servicos/${servicoId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     setAssignModal(null);
     fetchData();
@@ -167,7 +167,6 @@ export default function ServicosPage() {
   const isFinanceiro = user?.cargo === 'FINANCEIRO';
   const isOperacional = user?.cargo === 'OPERACIONAL';
   const availableVehicles = veiculos.filter((v: any) => v.status === 'DISPONIVEL');
-  const availableEmployees = funcionarios.filter((f: any) => f.status === 'FOLGA');
 
   return (
     <div className="app-layout">
@@ -222,7 +221,11 @@ export default function ServicosPage() {
                         : s.veiculo ? (s.veiculo.apelido || s.veiculo.nome)
                         : <span style={{ color: 'var(--amber-400)' }}><AlertTriangle size={10} style={{ display: 'inline' }} /> {s.qtdVeiculos}x {tipoVeiculoLabels[s.tipoVeiculoSolicitado] || '?'}</span>}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{s.funcionario ? s.funcionario.nome : 'Sem operador'}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {s.funcionariosAlocados?.length > 0
+                        ? s.funcionariosAlocados.map((sf: any) => sf.funcionario?.nome).filter(Boolean).join(', ')
+                        : s.funcionario ? s.funcionario.nome : 'Sem operador'}
+                    </div>
                   </td>
                   <td>
                     <div style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', marginBottom: 2 }}>{new Date(s.dataInicio).toLocaleDateString('pt-BR')}</div>
@@ -417,16 +420,36 @@ export default function ServicosPage() {
                   )}
 
                   <div className="form-group">
-                    <label className="form-label">Operador</label>
-                    <select className="form-input" value={form.funcionarioId} onChange={(e) => setForm({ ...form, funcionarioId: e.target.value })}>
-                      <option value="">A definir depois...</option>
-                      {availableEmployees.map((f: any) => (
-                        <option key={f.id} value={f.id}>{f.nome} — {f.funcao}</option>
-                      ))}
-                      {editing?.funcionarioId && !availableEmployees.find((f: any) => f.id === editing.funcionarioId) && (
-                        <option value={editing.funcionarioId}>{editing.funcionario?.nome} (atual)</option>
-                      )}
-                    </select>
+                    <label className="form-label">Funcionários</label>
+                    <div style={{ maxHeight: 160, overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: 4, padding: 8 }}>
+                      {funcionarios.map((f: any) => {
+                        const fid = f.id.toString();
+                        return (
+                          <label key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={form.funcionarioIds.includes(fid)}
+                              onChange={(e) => setForm({
+                                ...form,
+                                funcionarioIds: e.target.checked
+                                  ? [...form.funcionarioIds, fid]
+                                  : form.funcionarioIds.filter(x => x !== fid)
+                              })}
+                            />
+                            <span style={{ fontSize: '0.85rem' }}>
+                              {f.nome} — {f.funcao}
+                              {f.status === 'TRABALHANDO' && <span style={{ color: 'var(--amber-400)', fontSize: '0.75rem', marginLeft: 6 }}>(trabalhando)</span>}
+                            </span>
+                          </label>
+                        );
+                      })}
+                      {funcionarios.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: 4 }}>Nenhum funcionário cadastrado</p>}
+                    </div>
+                    {form.funcionarioIds.length > 0 && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--green-400)', marginTop: 4, display: 'block' }}>
+                        {form.funcionarioIds.length} funcionário(s) selecionado(s)
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -477,8 +500,8 @@ export default function ServicosPage() {
                 <AssignForm
                   tipo={assignModal.tipoVeiculoSolicitado}
                   veiculos={availableVehicles}
-                  funcionarios={availableEmployees}
-                  onAssign={(veiculoIds, funcionarioId) => handleAssign(assignModal.id, veiculoIds, funcionarioId)}
+                  funcionarios={funcionarios}
+                  onAssign={(veiculoIds, funcionarioIds) => handleAssign(assignModal.id, veiculoIds, funcionarioIds)}
                 />
               </div>
             </div>
@@ -535,13 +558,16 @@ export default function ServicosPage() {
   );
 }
 
-function AssignForm({ tipo, veiculos, funcionarios, onAssign }: { tipo: string; veiculos: any[]; funcionarios: any[]; onAssign: (vs: string[], f: string) => void }) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [funcionarioId, setFuncionarioId] = useState('');
+function AssignForm({ tipo, veiculos, funcionarios, onAssign }: { tipo: string; veiculos: any[]; funcionarios: any[]; onAssign: (vs: string[], fs: string[]) => void }) {
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([]);
+  const [selectedFuncIds, setSelectedFuncIds] = useState<string[]>([]);
   const filtered = veiculos.filter((v: any) => v.tipo === tipo);
 
   const toggleVehicle = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    setSelectedVehicleIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const toggleFunc = (id: string) => {
+    setSelectedFuncIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
   return (
@@ -553,7 +579,7 @@ function AssignForm({ tipo, veiculos, funcionarios, onAssign }: { tipo: string; 
             <label key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
               <input
                 type="checkbox"
-                checked={selectedIds.includes(v.id.toString())}
+                checked={selectedVehicleIds.includes(v.id.toString())}
                 onChange={() => toggleVehicle(v.id.toString())}
               />
               <span style={{ fontSize: '0.85rem' }}>{v.apelido || v.nome} — {v.placa} ({v.capacidade}t)</span>
@@ -561,19 +587,30 @@ function AssignForm({ tipo, veiculos, funcionarios, onAssign }: { tipo: string; 
           ))}
           {filtered.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--red-400)', padding: 4 }}>Nenhum {tipoVeiculoLabels[tipo]} disponível no momento</p>}
         </div>
-        {selectedIds.length > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--green-400)', marginTop: 4, display: 'block' }}>{selectedIds.length} selecionado(s)</span>}
+        {selectedVehicleIds.length > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--green-400)', marginTop: 4, display: 'block' }}>{selectedVehicleIds.length} selecionado(s)</span>}
       </div>
       <div className="form-group">
-        <label className="form-label">Atribuir Operador (opcional)</label>
-        <select className="form-input" value={funcionarioId} onChange={(e) => setFuncionarioId(e.target.value)}>
-          <option value="">Definir depois...</option>
+        <label className="form-label">Funcionários (opcional)</label>
+        <div style={{ maxHeight: 140, overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: 4, padding: 8 }}>
           {funcionarios.map((f: any) => (
-            <option key={f.id} value={f.id}>{f.nome} — {f.funcao}</option>
+            <label key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={selectedFuncIds.includes(f.id.toString())}
+                onChange={() => toggleFunc(f.id.toString())}
+              />
+              <span style={{ fontSize: '0.85rem' }}>
+                {f.nome} — {f.funcao}
+                {f.status === 'TRABALHANDO' && <span style={{ color: 'var(--amber-400)', fontSize: '0.75rem', marginLeft: 6 }}>(trabalhando)</span>}
+              </span>
+            </label>
           ))}
-        </select>
+          {funcionarios.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: 4 }}>Nenhum funcionário cadastrado</p>}
+        </div>
+        {selectedFuncIds.length > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--green-400)', marginTop: 4, display: 'block' }}>{selectedFuncIds.length} funcionário(s) selecionado(s)</span>}
       </div>
       <div className="modal-footer" style={{ padding: '16px 0 0' }}>
-        <button className="btn btn-primary" disabled={selectedIds.length === 0} onClick={() => onAssign(selectedIds, funcionarioId)}>
+        <button className="btn btn-primary" disabled={selectedVehicleIds.length === 0} onClick={() => onAssign(selectedVehicleIds, selectedFuncIds)}>
           Confirmar Alocação
         </button>
       </div>

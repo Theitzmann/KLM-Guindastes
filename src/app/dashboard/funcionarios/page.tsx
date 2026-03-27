@@ -80,7 +80,7 @@ export default function FuncionariosPage() {
         <div className="page-header">
           <div>
             <h1 className="page-title">Funcionários</h1>
-            <p className="page-subtitle">Gestão de operadores, motoristas e auxiliares</p>
+            <p className="page-subtitle">Gestão de operadores, mecânicos, auxiliares e encarregados</p>
           </div>
           <button className="btn btn-primary" onClick={openAdd}><Plus size={18} /> Novo Funcionário</button>
         </div>
@@ -149,8 +149,9 @@ export default function FuncionariosPage() {
                     <label className="form-label">Função *</label>
                     <select className="form-input" value={form.funcao} onChange={(e) => setForm({ ...form, funcao: e.target.value })}>
                       <option value="OPERADOR">Operador</option>
-                      <option value="MOTORISTA">Motorista</option>
+                      <option value="MECANICO">Mecânico</option>
                       <option value="AUXILIAR">Auxiliar</option>
+                      <option value="ENCARREGADO">Encarregado</option>
                     </select>
                   </div>
                   <div className="form-group">

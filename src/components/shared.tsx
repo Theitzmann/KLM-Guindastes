@@ -132,8 +132,9 @@ export const tipoServicoLabels: Record<string, string> = {
 
 export const funcaoLabels: Record<string, string> = {
   OPERADOR: 'Operador',
-  MOTORISTA: 'Motorista',
+  MECANICO: 'Mecânico',
   AUXILIAR: 'Auxiliar',
+  ENCARREGADO: 'Encarregado',
 };
 
 export const statusServicoLabels: Record<string, string> = {

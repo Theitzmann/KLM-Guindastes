@@ -105,12 +105,12 @@ export default function DashboardPage() {
             <div className="stat-value">{veiculos.length}</div>
             <div className="stat-label">Total de Veículos</div>
           </div>
-          <div className="stat-card green" onClick={() => router.push('/dashboard/veiculos')} style={{ cursor: 'pointer' }}>
+          <div className="stat-card green" onClick={() => router.push('/dashboard/veiculos?status=DISPONIVEL')} style={{ cursor: 'pointer' }}>
             <div className="stat-icon green"><CheckCircle2 size={24} /></div>
             <div className="stat-value">{veiculosDisponiveis}</div>
             <div className="stat-label">Disponíveis</div>
           </div>
-          <div className="stat-card blue" onClick={() => router.push('/dashboard/veiculos')} style={{ cursor: 'pointer' }}>
+          <div className="stat-card blue" onClick={() => router.push('/dashboard/veiculos?status=EM_USO')} style={{ cursor: 'pointer' }}>
             <div className="stat-icon blue"><Construction size={24} /></div>
             <div className="stat-value">{veiculosEmUso}</div>
             <div className="stat-label">Em Uso</div>

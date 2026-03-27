@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { Sidebar, StatusBadge, tipoVeiculoLabels } from '@/components/shared';
 
@@ -15,8 +15,15 @@ export default function VeiculosPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [filtro, setFiltro] = useState('TODOS');
+  const [filtroStatus, setFiltroStatus] = useState('TODOS');
   const [formError, setFormError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status) setFiltroStatus(status);
+  }, [searchParams]);
 
   const defaultForm = { nome: '', apelido: '', tipo: 'MUNCK', placa: '', capacidade: '', status: 'DISPONIVEL', observacoes: '' };
   const [form, setForm] = useState(defaultForm);
@@ -64,7 +71,8 @@ export default function VeiculosPage() {
 
   if (loading) return <div className="loading" style={{ minHeight: '100vh' }}><div className="loading-spinner" /></div>;
 
-  const filtered = filtro === 'TODOS' ? veiculos : veiculos.filter((v: any) => v.tipo === filtro);
+  const byTipo = filtro === 'TODOS' ? veiculos : veiculos.filter((v: any) => v.tipo === filtro);
+  const filtered = filtroStatus === 'TODOS' ? byTipo : byTipo.filter((v: any) => v.status === filtroStatus);
 
   return (
     <div className="app-layout">
@@ -79,11 +87,25 @@ export default function VeiculosPage() {
           <button className="btn btn-primary" onClick={openAdd}><Plus size={18} /> Novo Veículo</button>
         </div>
 
-        {/* Filter */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        {/* Filtro por tipo */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           {['TODOS', 'MUNCK', 'GUINDASTE', 'EMPILHADEIRA', 'CARRETA'].map((tipo) => (
             <button key={tipo} className={`btn ${filtro === tipo ? 'btn-primary' : 'btn-secondary'} btn-sm`} onClick={() => setFiltro(tipo)}>
               {tipo === 'TODOS' ? 'Todos' : tipoVeiculoLabels[tipo]} ({tipo === 'TODOS' ? veiculos.length : veiculos.filter((v: any) => v.tipo === tipo).length})
+            </button>
+          ))}
+        </div>
+
+        {/* Filtro por status */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+          {[
+            { key: 'TODOS', label: 'Todos os Status' },
+            { key: 'DISPONIVEL', label: 'Disponíveis' },
+            { key: 'EM_USO', label: 'Em Uso' },
+            { key: 'MANUTENCAO', label: 'Manutenção' },
+          ].map(({ key, label }) => (
+            <button key={key} className={`btn ${filtroStatus === key ? 'btn-primary' : 'btn-secondary'} btn-sm`} onClick={() => setFiltroStatus(key)}>
+              {label} ({key === 'TODOS' ? veiculos.length : veiculos.filter((v: any) => v.status === key).length})
             </button>
           ))}
         </div>

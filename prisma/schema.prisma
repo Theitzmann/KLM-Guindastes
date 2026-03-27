@@ -31,13 +31,14 @@ model Veiculo {
 }
 
 model Funcionario {
-  id          Int       @id @default(autoincrement())
-  nome        String
-  funcao      String    // OPERADOR | MOTORISTA | AUXILIAR
-  telefone    String?
-  status      String    @default("FOLGA") // TRABALHANDO | FOLGA
-  observacoes String?
-  servicos    Servico[]
+  id               Int                  @id @default(autoincrement())
+  nome             String
+  funcao           String               // OPERADOR | MECANICO | AUXILIAR | ENCARREGADO
+  telefone         String?
+  status           String               @default("FOLGA") // TRABALHANDO | FOLGA
+  observacoes      String?
+  servicos         Servico[]
+  servicosAlocados ServicoFuncionario[]
 }
 
 model Servico {
@@ -71,10 +72,11 @@ model Servico {
   criadoPorId           Int?
   criadoEm              DateTime         @default(now())
   // Relations
-  veiculo               Veiculo?         @relation(fields: [veiculoId], references: [id])
+  veiculo               Veiculo?             @relation(fields: [veiculoId], references: [id])
   veiculosAlocados      ServicoVeiculo[]
-  funcionario           Funcionario?     @relation(fields: [funcionarioId], references: [id])
-  criadoPor             Usuario?         @relation(fields: [criadoPorId], references: [id])
+  funcionario           Funcionario?         @relation(fields: [funcionarioId], references: [id])
+  funcionariosAlocados  ServicoFuncionario[]
+  criadoPor             Usuario?             @relation(fields: [criadoPorId], references: [id])
 }
 
 model ServicoVeiculo {
@@ -84,4 +86,13 @@ model ServicoVeiculo {
   veiculo   Veiculo @relation(fields: [veiculoId], references: [id])
 
   @@id([servicoId, veiculoId])
+}
+
+model ServicoFuncionario {
+  servicoId     Int
+  funcionarioId Int
+  servico       Servico     @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id])
+
+  @@id([servicoId, funcionarioId])
 }
