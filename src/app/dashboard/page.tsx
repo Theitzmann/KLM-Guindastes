@@ -349,14 +349,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handleWhatsApp(osPreview)}>
-                    <Share2 size={16} /> Abrir no WhatsApp
-                  </button>
-                  <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleShareImage(osPreview)}>
+                  <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handleShareImage(osPreview)}>
                     <Image size={16} /> Enviar como Foto
                   </button>
-                  <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleCopyLink(osPreview)}>
-                    <Link size={16} /> Copiar Link
+                  <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleWhatsApp(osPreview)}>
+                    <Share2 size={16} /> Enviar como Texto
                   </button>
                 </div>
               </div>
