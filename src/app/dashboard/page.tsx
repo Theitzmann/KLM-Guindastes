@@ -54,7 +54,12 @@ export default function DashboardPage() {
     if (!url) { showToast('Erro ao gerar link'); return; }
     const osNum = (s.numeroOS ?? s.id).toString().padStart(4, '0');
     const text = `OS #${osNum} — KLM Guindastes\nAcesse os detalhes da sua ordem de serviço:\n${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    const a = document.createElement('a');
+    a.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const handleCopyLink = async (s: any) => {

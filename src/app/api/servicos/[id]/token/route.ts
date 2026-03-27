@@ -5,7 +5,6 @@ import { getSession } from '@/lib/auth';
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-  if (session.cargo === 'FINANCEIRO') return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
 
   const { id } = await params;
   const servicoId = parseInt(id);
@@ -33,7 +32,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-  if (session.cargo === 'FINANCEIRO') return NextResponse.json({ error: 'Sem permissão' }, { status: 403 });
 
   const { id } = await params;
   const servicoId = parseInt(id);
