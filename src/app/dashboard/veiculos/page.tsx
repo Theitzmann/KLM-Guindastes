@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { Sidebar, StatusBadge, tipoVeiculoLabels } from '@/components/shared';
@@ -8,6 +8,14 @@ import { Sidebar, StatusBadge, tipoVeiculoLabels } from '@/components/shared';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function VeiculosPage() {
+  return (
+    <Suspense fallback={<div className="loading" style={{ minHeight: '100vh' }}><div className="loading-spinner" /></div>}>
+      <VeiculosPageContent />
+    </Suspense>
+  );
+}
+
+function VeiculosPageContent() {
   const [user, setUser] = useState<any>(null);
   const [veiculos, setVeiculos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
