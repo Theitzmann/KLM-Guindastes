@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import {
   Truck, Users, ClipboardList, Construction,
   MapPin, User, Calendar, Wrench, CheckCircle2,
-  Clock, AlertTriangle, DollarSign, Phone, Eye, FileText, Share2, Link, Image
+  Clock, AlertTriangle, DollarSign, Phone, Eye, FileText, Share2, Image
 } from 'lucide-react';
-import { Sidebar, StatusBadge, tipoVeiculoLabels, tipoServicoLabels, funcaoLabels } from '@/components/shared';
+import { Sidebar, StatusBadge, tipoVeiculoLabels, tipoServicoLabels, funcaoLabels, generateOsText } from '@/components/shared';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -40,41 +40,14 @@ export default function DashboardPage() {
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
-  const getOrCreateToken = async (servicoId: number): Promise<string | null> => {
-    try {
-      const res = await fetch(`/api/servicos/${servicoId}/token`, { method: 'POST' });
-      if (!res.ok) return null;
-      const data = await res.json();
-      return `${window.location.origin}/os/${data.token}`;
-    } catch { return null; }
-  };
-
-  const handleWhatsApp = async (s: any) => {
-    const url = await getOrCreateToken(s.id);
-    if (!url) { showToast('Erro ao gerar link'); return; }
-    const osNum = (s.numeroOS ?? s.id).toString().padStart(4, '0');
-    const text = `OS #${osNum} — KLM Guindastes\nAcesse os detalhes da sua ordem de serviço:\n${url}`;
+  const handleWhatsApp = (s: any) => {
+    const text = generateOsText(s);
     const a = document.createElement('a');
     a.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
     a.rel = 'noopener noreferrer';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  };
-
-  const handleCopyLink = async (s: any) => {
-    const url = await getOrCreateToken(s.id);
-    if (!url) { showToast('Erro ao gerar link'); return; }
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    showToast('Link copiado!');
   };
 
   const osCardRef = useRef<HTMLDivElement>(null);

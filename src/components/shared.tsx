@@ -146,13 +146,23 @@ export const statusServicoLabels: Record<string, string> = {
 
 // ===== OS Sharing =====
 export function generateOsText(s: any): string {
-  return `*OS #${s.id.toString().padStart(4, '0')} — KLM Guindastes*\n` +
+  const osNum = (s.numeroOS ?? s.id).toString().padStart(4, '0');
+
+  const veiculoNomes = s.veiculosAlocados?.length > 0
+    ? s.veiculosAlocados.map((sv: any) => sv.veiculo?.apelido || sv.veiculo?.nome).filter(Boolean).join(', ')
+    : s.veiculo ? (s.veiculo.apelido || s.veiculo.nome) : 'A definir';
+
+  const funcNomes = s.funcionariosAlocados?.length > 0
+    ? s.funcionariosAlocados.map((sf: any) => sf.funcionario?.nome).filter(Boolean).join(', ')
+    : s.funcionario?.nome ?? null;
+
+  return `*OS #${osNum} — KLM Guindastes*\n` +
     `📋 Cliente: ${s.cliente}\n` +
+    (s.solicitante ? `👤 Solicitante: ${s.solicitante}\n` : '') +
     `📍 Local: ${s.localidade}\n` +
     `📅 Data: ${new Date(s.dataInicio).toLocaleDateString('pt-BR')}${s.dataFim ? ` até ${new Date(s.dataFim).toLocaleDateString('pt-BR')}` : ''}\n` +
-    `🚛 Veículo: ${s.veiculo ? (s.veiculo.apelido || s.veiculo.nome) : 'A definir'}\n` +
-    (s.funcionario ? `👷 Operador: ${s.funcionario.nome}\n` : '') +
+    `🚛 Veículo(s): ${veiculoNomes}\n` +
+    (funcNomes ? `👷 Funcionário(s): ${funcNomes}\n` : '') +
     (s.descricao ? `📝 Descrição: ${s.descricao}\n` : '') +
-    (s.solicitante ? `👤 Responsável: ${s.solicitante}\n` : '') +
     `\n_KLM Guindastes — Qualidade com Segurança_`;
 }
